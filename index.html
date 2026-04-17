@@ -13,6 +13,7 @@
       --borda: #d7e1ee;
       --sucesso: #0f9d58;
       --perigo: #c62828;
+      --aviso: #b26a00;
       --sombra: 0 18px 50px rgba(11, 94, 168, 0.16);
     }
 
@@ -40,15 +41,15 @@
 
     .topbar p {
       margin: 8px 0 0;
-      opacity: 0.94;
+      opacity: 0.95;
       font-size: 15px;
     }
 
     .wrap {
-      width: min(1500px, calc(100% - 32px));
+      width: min(1540px, calc(100% - 32px));
       margin: 24px auto;
       display: grid;
-      grid-template-columns: 480px 1fr;
+      grid-template-columns: 500px 1fr;
       gap: 24px;
       align-items: start;
     }
@@ -87,7 +88,7 @@
       color: #214b75;
     }
 
-    input[type="text"], input[type="url"], textarea {
+    input[type="text"], input[type="url"], input[type="number"], textarea, select {
       width: 100%;
       border: 1px solid #c9d8ea;
       background: #fff;
@@ -100,13 +101,14 @@
       transition: border-color .2s ease, box-shadow .2s ease;
     }
 
-    input:focus, textarea:focus {
+    input:focus, textarea:focus, select:focus {
       border-color: var(--azul);
       box-shadow: 0 0 0 4px rgba(11, 94, 168, 0.12);
     }
 
     textarea { resize: vertical; min-height: 110px; }
-    #mensagem { min-height: 300px; }
+    #mensagem { min-height: 340px; }
+    #destinatarios { min-height: 210px; }
 
     .row {
       display: grid;
@@ -118,7 +120,7 @@
       margin-top: 7px;
       font-size: 12px;
       color: #60758d;
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
     .toolbar {
@@ -141,6 +143,11 @@
 
     button:hover { transform: translateY(-1px); }
     button:active { transform: translateY(0); }
+    button:disabled {
+      opacity: .7;
+      cursor: not-allowed;
+      transform: none;
+    }
 
     .primary { background: linear-gradient(135deg, var(--azul), #1173cc); color: #fff; }
     .success { background: linear-gradient(135deg, #0f9d58, #19b264); color: #fff; }
@@ -151,19 +158,27 @@
       border-radius: 14px;
       font-size: 14px;
       display: none;
-      line-height: 1.45;
+      line-height: 1.5;
+      white-space: pre-wrap;
     }
 
     .status.show { display: block; }
     .status.ok { background: #eaf8f0; color: #16653a; border: 1px solid #bfe7cc; }
     .status.error { background: #fff0f0; color: #9c1c1c; border: 1px solid #f0c1c1; }
     .status.info { background: #eef6ff; color: #14476f; border: 1px solid #cfe0f3; }
+    .status.warn { background: #fff6e7; color: #925400; border: 1px solid #f3d5a0; }
 
     .preview-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .chip-group {
+      display: flex;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
@@ -175,6 +190,31 @@
       padding: 8px 12px;
       font-size: 13px;
       font-weight: 700;
+    }
+
+    .progress-wrap {
+      margin-top: 14px;
+    }
+
+    .progress-bar {
+      height: 12px;
+      background: #e7eff8;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #d3dfeb;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(135deg, var(--azul), #1d86e4);
+      transition: width .3s ease;
+    }
+
+    .progress-text {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #5b6e82;
     }
 
     .mail-shell {
@@ -267,18 +307,44 @@
       color: #56708b;
     }
 
-    @media (max-width: 1100px) {
+    .stats-list {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid #dce8f4;
+      background: #f9fbfe;
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 18px;
+      color: var(--azul-escuro);
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      font-size: 12px;
+      color: #60758d;
+    }
+
+    @media (max-width: 1180px) {
       .wrap { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 700px) {
       .topbar { padding: 20px; }
       .topbar h1 { font-size: 24px; }
-      .wrap { width: min(100% - 16px, 1500px); margin: 16px auto; gap: 16px; }
+      .wrap { width: min(100% - 16px, 1540px); margin: 16px auto; gap: 16px; }
       .panel-body, .panel-head, .preview-head { padding-left: 16px; padding-right: 16px; }
       .mail-shell { padding: 12px; }
       .mail-content { padding: 22px 18px 28px; }
-      .toolbar, .row { grid-template-columns: 1fr; }
+      .toolbar, .row, .stats-list { grid-template-columns: 1fr; }
       .mail-body { font-size: 16px; }
     }
   </style>
@@ -286,7 +352,7 @@
 <body>
   <div class="topbar">
     <h1>📩 Disparo de E-mails em Massa • UniCesumar Caucaia</h1>
-    <p>Modelo padronizado com logo no topo e botão de suporte no fim. Você escreve a mensagem, visualiza e envia em lote.</p>
+    <p>Prévia profissional, leitura automática dos e-mails, envio em lotes com progresso real e retorno consistente do Apps Script.</p>
   </div>
 
   <div class="wrap">
@@ -335,17 +401,39 @@ E tem mais 👇
 
 ⏳ Aproveite agora — vagas com condições limitadas!
 
-Clique no botão verde abaixo e faça sua indicação em poucos segundos:
-
-Atenciosamente,
-Fabricio Benigno - Tutor de Polo
-UniCesumar – Caucaia</textarea>
+Clique no botão verde abaixo e faça sua indicação em poucos segundos:</textarea>
         </div>
 
-        <div class="field">
-          <label for="endpoint">URL do Google Apps Script / Webhook de envio</label>
-          <input id="endpoint" type="url" value="https://script.google.com/macros/s/AKfycbxUYh7T2MpABeMNns_Dag6C1Y_4GjPdbJdAdJ8BhgbjMSsnth-wVku56w0Q-o5fqxw5/exec" />
-          <div class="hint">A URL de envio já está configurada. Você pode alterar depois, se quiser, mas o sistema já fica pronto para uso.</div>
+        <div class="row">
+          <div class="field">
+            <label for="endpoint">URL do Google Apps Script</label>
+            <input id="endpoint" type="url" value="https://script.google.com/macros/s/AKfycbzZ6C3ff5FyKsT4NozmMV0cftZ-a-ELKOcB9rNTdMlwz8Rt3AVfHNpEXNLizr_JwcDNQQ/exec" />
+            <div class="hint">Mantenha aqui a URL da implantação mais recente do seu Apps Script.</div>
+          </div>
+          <div class="field">
+            <label for="batchSize">Lote por envio</label>
+            <select id="batchSize">
+              <option value="10">10 e-mails</option>
+              <option value="15">15 e-mails</option>
+              <option value="20" selected>20 e-mails</option>
+              <option value="25">25 e-mails</option>
+              <option value="30">30 e-mails</option>
+            </select>
+            <div class="hint">20 costuma ser um ponto seguro para reduzir falhas e evitar limite do Gmail.</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="delayMs">Pausa entre lotes (ms)</label>
+            <input id="delayMs" type="number" min="0" step="100" value="1800" />
+            <div class="hint">1800 ms = 1,8 segundo entre um lote e outro.</div>
+          </div>
+          <div class="field">
+            <label for="senderName">Nome do remetente no Gmail</label>
+            <input id="senderName" type="text" value="UniCesumar Caucaia" />
+            <div class="hint">Esse nome será usado pelo Apps Script ao enviar os e-mails.</div>
+          </div>
         </div>
 
         <div class="toolbar">
@@ -353,15 +441,30 @@ UniCesumar – Caucaia</textarea>
           <button class="success" id="btnEnviar">Enviar em massa</button>
         </div>
 
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-text" id="progressText">Aguardando envio.</div>
+        </div>
+
+        <div class="stats-list">
+          <div class="stat"><strong id="statTotal">0</strong><span>Total de e-mails válidos</span></div>
+          <div class="stat"><strong id="statInvalidos">0</strong><span>Inválidos detectados</span></div>
+          <div class="stat"><strong id="statEnviados">0</strong><span>Enviados</span></div>
+          <div class="stat"><strong id="statFalhas">0</strong><span>Falhas</span></div>
+        </div>
+
         <div id="status" class="status"></div>
 
         <div class="muted-box">
-          <strong>Como usar:</strong><br>
-          1. Escreva o assunto e a mensagem.<br>
-          2. Cole os e-mails dos alunos.<br>
-          3. Visualize à direita.<br>
-          4. Para envio real em massa, basta manter a URL do Google Apps Script configurada.<br>
-          5. O layout sempre sairá com a logo <strong>unicesumar.png</strong> no topo e o botão <strong>botaosuporte.png</strong> no final.
+          <strong>Como este sistema trabalha da forma correta:</strong><br>
+          1. Lê e limpa automaticamente os e-mails colados.<br>
+          2. Remove duplicados e separa inválidos.<br>
+          3. Envia em lotes, não tudo de uma vez.<br>
+          4. Atualiza a barra de progresso a cada lote.<br>
+          5. Exibe retorno real do Apps Script para evitar erro falso.<br>
+          6. Mantém a logo no topo e o botão de indicação no fim do e-mail.
         </div>
       </div>
     </section>
@@ -369,7 +472,10 @@ UniCesumar – Caucaia</textarea>
     <section class="preview-card">
       <div class="preview-head">
         <h2>Prévia do e-mail</h2>
-        <div class="chip" id="contador">0 destinatários</div>
+        <div class="chip-group">
+          <div class="chip" id="contador">0 destinatários válidos</div>
+          <div class="chip" id="contadorInvalidos">0 inválidos</div>
+        </div>
       </div>
       <div class="mail-shell">
         <div class="mail-card">
@@ -382,16 +488,28 @@ UniCesumar – Caucaia</textarea>
   <script>
     const LOGO_SRC = "unicesumar.png";
     const BUTTON_SRC = "https://drive.google.com/thumbnail?id=1InXz85Ai0ddAipo3G-Xz5NhmykP5Nv-e&sz=w1200";
-    const WHATSAPP_LINK = "https://wa.me/5585985018590?text=oii%20quero%20indicar%20%21%0Ameu%20Nome%3A%20%0AIndica%C3%A7%C3%A3o%3A%0Anumero%20da%20indica%C3%A7%C3%A3o%3A%0Asugest%C3%A3o%20de%20curso%20para%20o%20indicado%3A%20%20";
+    const WHATSAPP_LINK = "https://wa.me/5585985018590?text=oii%20quero%20indicar%20%21%0Ameu%20Nome%3A%20%0AIndica%C3%A7%C3%A3o%3A%0Anumero%20da%20indica%C3%A7%C3%A3o%3A%0Asugest%C3%A3o%20de%20curso%20para%20o%20indicado%3A%20";
 
     const destinatariosEl = document.getElementById("destinatarios");
     const assuntoEl = document.getElementById("assunto");
     const nomeRemetenteEl = document.getElementById("nomeRemetente");
     const mensagemEl = document.getElementById("mensagem");
     const endpointEl = document.getElementById("endpoint");
+    const batchSizeEl = document.getElementById("batchSize");
+    const delayMsEl = document.getElementById("delayMs");
+    const senderNameEl = document.getElementById("senderName");
+    const btnPreview = document.getElementById("btnPreview");
+    const btnEnviar = document.getElementById("btnEnviar");
     const previewContainer = document.getElementById("previewContainer");
     const contador = document.getElementById("contador");
+    const contadorInvalidos = document.getElementById("contadorInvalidos");
     const statusEl = document.getElementById("status");
+    const progressFill = document.getElementById("progressFill");
+    const progressText = document.getElementById("progressText");
+    const statTotal = document.getElementById("statTotal");
+    const statInvalidos = document.getElementById("statInvalidos");
+    const statEnviados = document.getElementById("statEnviados");
+    const statFalhas = document.getElementById("statFalhas");
 
     function escapeHtml(str) {
       return String(str)
@@ -402,15 +520,78 @@ UniCesumar – Caucaia</textarea>
         .replace(/'/g, "&#39;");
     }
 
-    function getRecipients() {
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim().toLowerCase());
+    }
+
+    function normalizeRecipients() {
       const raw = (destinatariosEl.value || "")
         .replace(/[\u00A0\u200B\u200C\u200D\uFEFF]/g, " ")
         .trim();
-      const emails = raw
+
+      if (!raw) {
+        return { valid: [], invalid: [] };
+      }
+
+      const tokens = raw
         .split(/[\n\r,;\s]+/)
-        .map(v => v.trim())
+        .map(v => v.trim().toLowerCase())
         .filter(Boolean);
-      return [...new Set(emails)];
+
+      const unique = [...new Set(tokens)];
+      const valid = [];
+      const invalid = [];
+
+      unique.forEach(email => {
+        if (isValidEmail(email)) {
+          valid.push(email);
+        } else {
+          invalid.push(email);
+        }
+      });
+
+      return { valid, invalid };
+    }
+
+    function getRecipients() {
+      return normalizeRecipients().valid;
+    }
+
+    function chunkArray(arr, size) {
+      const chunks = [];
+      for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+      }
+      return chunks;
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function updateStats(total = 0, invalidos = 0, enviados = 0, falhas = 0) {
+      statTotal.textContent = total;
+      statInvalidos.textContent = invalidos;
+      statEnviados.textContent = enviados;
+      statFalhas.textContent = falhas;
+    }
+
+    function setProgress(current, total, message) {
+      const pct = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
+      progressFill.style.width = `${pct}%`;
+      progressText.textContent = message || `Progresso: ${pct}%`;
+    }
+
+    function showStatus(message, type = "info") {
+      statusEl.className = `status show ${type}`;
+      statusEl.textContent = message;
+    }
+
+    function updateRecipientsCounters() {
+      const data = normalizeRecipients();
+      contador.textContent = `${data.valid.length} destinatário${data.valid.length === 1 ? "" : "s"} válido${data.valid.length === 1 ? "" : "s"}`;
+      contadorInvalidos.textContent = `${data.invalid.length} inválido${data.invalid.length === 1 ? "" : "s"}`;
+      updateStats(data.valid.length, data.invalid.length, Number(statEnviados.textContent || 0), Number(statFalhas.textContent || 0));
     }
 
     function buildMessageInnerHtml() {
@@ -430,10 +611,10 @@ UniCesumar – Caucaia</textarea>
         <div class="signature"><strong>Atenciosamente,</strong><br>${assinatura}</div>
         <div class="cta-wrap">
           <a class="cta-link" href="${WHATSAPP_LINK}" target="_blank" rel="noopener noreferrer">
-            <img class="cta-img" src="${BUTTON_SRC}" alt="Falar com a Tutoria pelo WhatsApp" />
+            <img class="cta-img" src="${BUTTON_SRC}" alt="Indicar aluno pelo WhatsApp" />
           </a>
         </div>
-        <div class="footer-note">Canal oficial de suporte • Polo UniCesumar – Caucaia</div>
+        <div class="footer-note">Canal oficial de atendimento • Polo UniCesumar – Caucaia</div>
       `;
     }
 
@@ -461,7 +642,7 @@ UniCesumar – Caucaia</textarea>
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="760" style="max-width:760px;width:100%;background:#ffffff;border:1px solid #d9e4f0;border-radius:18px;overflow:hidden;">
           <tr>
             <td style="padding:34px 44px 40px;">
-              <img src="cid:logoUni" alt="UniCesumar" style="display:block;max-width:320px;width:100%;height:auto;margin:0 auto 30px;" />
+              <img src="${LOGO_SRC}" alt="UniCesumar" style="display:block;max-width:320px;width:100%;height:auto;margin:0 auto 30px;" />
               <div style="font-size:15px;color:#526579;margin-bottom:24px;padding:12px 14px;background:#f6f9fc;border:1px solid #dbe7f3;border-radius:12px;">
                 <strong>Assunto:</strong> ${assunto}
               </div>
@@ -472,12 +653,12 @@ UniCesumar – Caucaia</textarea>
                 <strong>Atenciosamente,</strong><br>${assinatura}
               </div>
               <div style="margin-top:28px;text-align:center;">
-                <a href="${WHATSAPP_LINK}" target="_blank">
-                  <img src="${BUTTON_SRC}" alt="Falar com a Tutoria pelo WhatsApp" style="max-width:100%;width:520px;height:auto;border:0;display:inline-block;" />
+                <a href="${WHATSAPP_LINK}" target="_blank" rel="noopener noreferrer">
+                  <img src="${BUTTON_SRC}" alt="Indicar aluno pelo WhatsApp" style="max-width:100%;width:520px;height:auto;border:0;display:inline-block;" />
                 </a>
               </div>
               <div style="margin-top:28px;font-size:13px;color:#60758d;text-align:center;">
-                Canal oficial de suporte • Polo UniCesumar – Caucaia
+                Canal oficial de atendimento • Polo UniCesumar – Caucaia
               </div>
             </td>
           </tr>
@@ -491,29 +672,48 @@ UniCesumar – Caucaia</textarea>
 
     function updatePreview() {
       previewContainer.innerHTML = buildMessageInnerHtml();
-      const total = getRecipients().length;
-      contador.textContent = `${total} destinatário${total === 1 ? "" : "s"}`;
+      updateRecipientsCounters();
     }
 
-    function showStatus(message, type = "info") {
-      statusEl.className = `status show ${type}`;
-      statusEl.textContent = message;
+    async function postBatch(endpoint, payload) {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
+      const rawText = await response.text();
+      let data = {};
+
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch (err) {
+        throw new Error(`O Apps Script respondeu em formato inválido: ${rawText.slice(0, 180)}`);
+      }
+
+      if (data.success === false) {
+        throw new Error(data.message || "Falha retornada pelo Apps Script.");
+      }
+
+      return data;
     }
 
-    document.getElementById("btnPreview").addEventListener("click", () => {
-      updatePreview();
-      showStatus("Prévia atualizada com sucesso. ✨", "ok");
-    });
-
-    document.getElementById("btnEnviar").addEventListener("click", async () => {
+    async function handleSend() {
       const endpoint = endpointEl.value.trim();
-      const recipients = getRecipients();
-      const subject = assuntoEl.value.trim();
+      const assunto = assuntoEl.value.trim();
+      const senderName = senderNameEl.value.trim() || "UniCesumar Caucaia";
+      const delayMs = Math.max(0, Number(delayMsEl.value || 0));
+      const batchSize = Math.max(1, Number(batchSizeEl.value || 20));
+      const normalized = normalizeRecipients();
+      const recipients = normalized.valid;
+      const invalidRecipients = normalized.invalid;
       const messageHtml = buildEmailDocumentForSending();
-      const plainText = mensagemEl.value.trim() + "\n\nAtenciosamente,\n" + (nomeRemetenteEl.value.trim() || "Fabricio Benigno - Tutor de Polo\nUniCesumar – Caucaia");
+      const plainText = `${mensagemEl.value.trim()}\n\nAtenciosamente,\n${nomeRemetenteEl.value.trim() || "Fabricio Benigno - Tutor de Polo\nUniCesumar – Caucaia"}`;
+
+      updateStats(recipients.length, invalidRecipients.length, 0, 0);
+      setProgress(0, recipients.length || 1, "Preparando envio...");
 
       if (!recipients.length) {
-        showStatus("Cole pelo menos um e-mail de destinatário antes de enviar.", "error");
+        showStatus("Cole pelo menos um e-mail válido de destinatário antes de enviar.", "error");
         return;
       }
 
@@ -522,42 +722,100 @@ UniCesumar – Caucaia</textarea>
         return;
       }
 
+      if (!assunto) {
+        showStatus("Informe o assunto do e-mail.", "error");
+        return;
+      }
+
+      if (!mensagemEl.value.trim()) {
+        showStatus("A mensagem está vazia.", "error");
+        return;
+      }
+
+      btnEnviar.disabled = true;
+      btnPreview.disabled = true;
+      btnEnviar.textContent = "Enviando...";
+
+      let sent = 0;
+      let failed = 0;
+      const failedList = [];
+      const batches = chunkArray(recipients, batchSize);
+
       try {
-        showStatus("Enviando campanha em massa... aguarde. 🚀", "info");
+        showStatus("Iniciando envio em lotes... aguarde até a conclusão total. 🚀", invalidRecipients.length ? "warn" : "info");
 
-        const payload = {
-          recipients,
-          subject,
-          messageHtml,
-          plainText,
-          whatsappLink: WHATSAPP_LINK
-        };
+        for (let i = 0; i < batches.length; i++) {
+          const batch = batches[i];
 
-        const response = await fetch(endpoint, {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
+          setProgress(sent + failed, recipients.length, `Enviando lote ${i + 1} de ${batches.length} (${batch.length} e-mail(s))...`);
 
-        const data = await response.json().catch(() => ({}));
+          const payload = {
+            recipients: batch,
+            subject: assunto,
+            plainText,
+            messageHtml,
+            senderName,
+            batchNumber: i + 1,
+            totalBatches: batches.length
+          };
 
-        if (!response.ok || data.success === false) {
-          throw new Error(data.message || "Falha no endpoint de envio.");
+          const data = await postBatch(endpoint, payload);
+
+          sent += Number(data.sent || 0);
+          failed += Number(data.failed || 0);
+
+          if (Array.isArray(data.failedList) && data.failedList.length) {
+            failedList.push(...data.failedList);
+          }
+
+          updateStats(recipients.length, invalidRecipients.length, sent, failed);
+          setProgress(sent + failed, recipients.length, `Lote ${i + 1}/${batches.length} concluído. Enviados: ${sent}. Falhas: ${failed}.`);
+
+          if (i < batches.length - 1 && delayMs > 0) {
+            await sleep(delayMs);
+          }
         }
 
-        const enviados = typeof data.sent === "number" ? data.sent : recipients.length;
-        const falharam = typeof data.failed === "number" ? data.failed : 0;
+        const baseMessage = [
+          `Processo concluído.`,
+          `Válidos: ${recipients.length}.`,
+          `Inválidos ignorados: ${invalidRecipients.length}.`,
+          `Enviados: ${sent}.`,
+          `Falhas: ${failed}.`
+        ].join(" ");
 
-        showStatus(`Envio concluído. ${enviados} e-mail(s) enviado(s). Falhas: ${falharam}. ✅`, "ok");
+        if (failed > 0 || invalidRecipients.length > 0) {
+          showStatus(baseMessage, "warn");
+        } else {
+          showStatus(baseMessage, "ok");
+        }
+
       } catch (error) {
-        showStatus(`Não foi possível concluir o envio. Detalhe: ${error.message}`, "error");
+        showStatus(
+          `O envio foi interrompido.\n\nEnviados até agora: ${sent}\nFalhas até agora: ${failed}\nInválidos ignorados: ${invalidRecipients.length}\n\nDetalhe: ${error.message}`,
+          "error"
+        );
+      } finally {
+        btnEnviar.disabled = false;
+        btnPreview.disabled = false;
+        btnEnviar.textContent = "Enviar em massa";
+        updateRecipientsCounters();
       }
+    }
+
+    btnPreview.addEventListener("click", () => {
+      updatePreview();
+      showStatus("Prévia atualizada com sucesso. ✨", "ok");
     });
+
+    btnEnviar.addEventListener("click", handleSend);
 
     [destinatariosEl, assuntoEl, nomeRemetenteEl, mensagemEl].forEach(el => {
       el.addEventListener("input", updatePreview);
     });
 
     updatePreview();
+    setProgress(0, 1, "Aguardando envio.");
   </script>
 </body>
 </html>
