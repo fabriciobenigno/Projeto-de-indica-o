@@ -297,8 +297,8 @@
       <div class="panel-body">
         <div class="field">
           <label for="destinatarios">Destinatários</label>
-          <textarea id="destinatarios" placeholder="Cole aqui vários e-mails, separados por vírgula, ponto e vírgula, espaço ou quebra de linha."></textarea>
-          <div class="hint">Exemplo: aluno1@email.com, aluno2@email.com ou um por linha.</div>
+          <textarea id="destinatarios" placeholder="Cole aqui vários e-mails, um por linha, com espaço, vírgula ou ponto e vírgula."></textarea>
+          <div class="hint">Exemplo: aluno1@email.com em cada linha, ou separados por espaço, vírgula ou ponto e vírgula.</div>
         </div>
 
         <div class="row">
@@ -403,9 +403,11 @@ UniCesumar – Caucaia</textarea>
     }
 
     function getRecipients() {
-      const raw = destinatariosEl.value || "";
+      const raw = (destinatariosEl.value || "")
+        .replace(/[\u00A0\u200B\u200C\u200D\uFEFF]/g, " ")
+        .trim();
       const emails = raw
-        .split(/[\n,;\s]+/)
+        .split(/[\n\r,;\s]+/)
         .map(v => v.trim())
         .filter(Boolean);
       return [...new Set(emails)];
