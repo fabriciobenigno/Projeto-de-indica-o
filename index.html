@@ -352,7 +352,7 @@
 <body>
   <div class="topbar">
     <h1>📩 Disparo de E-mails em Massa • UniCesumar Caucaia</h1>
-    <p>Prévia profissional, leitura automática dos e-mails, envio em lotes com progresso real e retorno consistente do Apps Script.</p>
+    <p>Prévia profissional, seleção do botão final, leitura automática dos e-mails, envio em lotes e tratamento robusto para evitar erro falso.</p>
   </div>
 
   <div class="wrap">
@@ -401,15 +401,26 @@ E tem mais 👇
 
 ⏳ Aproveite agora — vagas com condições limitadas!
 
-Clique no botão verde abaixo e faça sua indicação em poucos segundos:</textarea>
+Clique no botão abaixo e fale conosco em poucos segundos:</textarea>
         </div>
 
         <div class="row">
           <div class="field">
+            <label for="buttonMode">Botão final do e-mail</label>
+            <select id="buttonMode">
+              <option value="indicacao" selected>Botão de Indicação</option>
+              <option value="tutoria">Botão de Tutoria</option>
+            </select>
+            <div class="hint">Escolha qual PNG será exibido no final do e-mail antes de enviar para os alunos.</div>
+          </div>
+          <div class="field">
             <label for="endpoint">URL do Google Apps Script</label>
-            <input id="endpoint" type="url" value="https://script.google.com/macros/s/AKfycbzZ6C3ff5FyKsT4NozmMV0cftZ-a-ELKOcB9rNTdMlwz8Rt3AVfHNpEXNLizr_JwcDNQQ/exec" />
+            <input id="endpoint" type="url" value="https://script.google.com/macros/s/AKfycbwh38dF7AA9fXQav7O_lxTIdUZUvJSJblIEOEGTgGBap65ec838HNrZaeOaK-tgbLGBgA/exec" />
             <div class="hint">Mantenha aqui a URL da implantação mais recente do seu Apps Script.</div>
           </div>
+        </div>
+
+        <div class="row">
           <div class="field">
             <label for="batchSize">Lote por envio</label>
             <select id="batchSize">
@@ -421,18 +432,27 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
             </select>
             <div class="hint">20 costuma ser um ponto seguro para reduzir falhas e evitar limite do Gmail.</div>
           </div>
-        </div>
-
-        <div class="row">
           <div class="field">
             <label for="delayMs">Pausa entre lotes (ms)</label>
             <input id="delayMs" type="number" min="0" step="100" value="1800" />
             <div class="hint">1800 ms = 1,8 segundo entre um lote e outro.</div>
           </div>
+        </div>
+
+        <div class="row">
           <div class="field">
             <label for="senderName">Nome do remetente no Gmail</label>
             <input id="senderName" type="text" value="UniCesumar Caucaia" />
             <div class="hint">Esse nome será usado pelo Apps Script ao enviar os e-mails.</div>
+          </div>
+          <div class="field">
+            <label for="whatsappMessage">Mensagem padrão do botão</label>
+            <textarea id="whatsappMessage" style="min-height: 120px;">oii quero indicar !
+meu Nome: 
+Indicação:
+numero da indicação:
+sugestão de curso para o indicado: </textarea>
+            <div class="hint">Essa mensagem será aberta automaticamente no WhatsApp quando o aluno clicar no botão escolhido.</div>
           </div>
         </div>
 
@@ -458,13 +478,13 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
         <div id="status" class="status"></div>
 
         <div class="muted-box">
-          <strong>Como este sistema trabalha da forma correta:</strong><br>
-          1. Lê e limpa automaticamente os e-mails colados.<br>
-          2. Remove duplicados e separa inválidos.<br>
-          3. Envia em lotes, não tudo de uma vez.<br>
-          4. Atualiza a barra de progresso a cada lote.<br>
-          5. Exibe retorno real do Apps Script para evitar erro falso.<br>
-          6. Mantém a logo no topo e o botão de indicação no fim do e-mail.
+          <strong>Como este sistema está preparado para funcionar do jeito correto:</strong><br>
+          1. Lê automaticamente os e-mails colados por linha, espaço, vírgula ou ponto e vírgula.<br>
+          2. Remove duplicados e separa inválidos antes do envio.<br>
+          3. Permite escolher o botão final: <strong>Tutoria</strong> ou <strong>Indicação</strong>.<br>
+          4. Envia em lotes com pausa controlada para reduzir falhas.<br>
+          5. Atualiza a barra de progresso a cada lote concluído.<br>
+          6. Interpreta corretamente o retorno do Apps Script para evitar mensagem de erro falsa.
         </div>
       </div>
     </section>
@@ -475,6 +495,7 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
         <div class="chip-group">
           <div class="chip" id="contador">0 destinatários válidos</div>
           <div class="chip" id="contadorInvalidos">0 inválidos</div>
+          <div class="chip" id="buttonLabelChip">Botão: Indicação</div>
         </div>
       </div>
       <div class="mail-shell">
@@ -487,22 +508,36 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
 
   <script>
     const LOGO_SRC = "unicesumar.png";
-    const BUTTON_SRC = "https://drive.google.com/thumbnail?id=1InXz85Ai0ddAipo3G-Xz5NhmykP5Nv-e&sz=w1200";
-    const WHATSAPP_LINK = "https://wa.me/5585985018590?text=oii%20quero%20indicar%20%21%0Ameu%20Nome%3A%20%0AIndica%C3%A7%C3%A3o%3A%0Anumero%20da%20indica%C3%A7%C3%A3o%3A%0Asugest%C3%A3o%20de%20curso%20para%20o%20indicado%3A%20";
+
+    const BUTTON_CONFIG = {
+      tutoria: {
+        label: "Tutoria",
+        alt: "Falar com a Tutoria pelo WhatsApp",
+        src: "https://drive.google.com/thumbnail?id=1Nzo-9rdGcsflYh3hFgp60O4jLfe4RC2s&sz=w1200"
+      },
+      indicacao: {
+        label: "Indicação",
+        alt: "Fazer indicação pelo WhatsApp",
+        src: "https://drive.google.com/thumbnail?id=1InXz85Ai0ddAipo3G-Xz5NhmykP5Nv-e&sz=w1200"
+      }
+    };
 
     const destinatariosEl = document.getElementById("destinatarios");
     const assuntoEl = document.getElementById("assunto");
     const nomeRemetenteEl = document.getElementById("nomeRemetente");
     const mensagemEl = document.getElementById("mensagem");
+    const buttonModeEl = document.getElementById("buttonMode");
     const endpointEl = document.getElementById("endpoint");
     const batchSizeEl = document.getElementById("batchSize");
     const delayMsEl = document.getElementById("delayMs");
     const senderNameEl = document.getElementById("senderName");
+    const whatsappMessageEl = document.getElementById("whatsappMessage");
     const btnPreview = document.getElementById("btnPreview");
     const btnEnviar = document.getElementById("btnEnviar");
     const previewContainer = document.getElementById("previewContainer");
     const contador = document.getElementById("contador");
     const contadorInvalidos = document.getElementById("contadorInvalidos");
+    const buttonLabelChip = document.getElementById("buttonLabelChip");
     const statusEl = document.getElementById("status");
     const progressFill = document.getElementById("progressFill");
     const progressText = document.getElementById("progressText");
@@ -522,6 +557,14 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
 
     function isValidEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim().toLowerCase());
+    }
+
+    function getButtonConfig() {
+      return BUTTON_CONFIG[buttonModeEl.value] || BUTTON_CONFIG.indicacao;
+    }
+
+    function getWhatsappLink() {
+      return `https://wa.me/5585985018590?text=${encodeURIComponent(whatsappMessageEl.value || "")}`;
     }
 
     function normalizeRecipients() {
@@ -551,10 +594,6 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
       });
 
       return { valid, invalid };
-    }
-
-    function getRecipients() {
-      return normalizeRecipients().valid;
     }
 
     function chunkArray(arr, size) {
@@ -589,8 +628,10 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
 
     function updateRecipientsCounters() {
       const data = normalizeRecipients();
+      const buttonConfig = getButtonConfig();
       contador.textContent = `${data.valid.length} destinatário${data.valid.length === 1 ? "" : "s"} válido${data.valid.length === 1 ? "" : "s"}`;
       contadorInvalidos.textContent = `${data.invalid.length} inválido${data.invalid.length === 1 ? "" : "s"}`;
+      buttonLabelChip.textContent = `Botão: ${buttonConfig.label}`;
       updateStats(data.valid.length, data.invalid.length, Number(statEnviados.textContent || 0), Number(statFalhas.textContent || 0));
     }
 
@@ -599,10 +640,11 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
       const assinatura = escapeHtml(
         nomeRemetenteEl.value.trim() || "Fabricio Benigno - Tutor de Polo\nUniCesumar – Caucaia"
       ).replace(/\n/g, "<br>");
-
       const body = escapeHtml(mensagemEl.value.trim())
         .replace(/\n\n/g, "</p><p>")
         .replace(/\n/g, "<br>");
+      const buttonConfig = getButtonConfig();
+      const whatsappLink = getWhatsappLink();
 
       return `
         <img class="mail-logo" src="${LOGO_SRC}" alt="UniCesumar" />
@@ -610,8 +652,8 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
         <div class="mail-body"><p>${body}</p></div>
         <div class="signature"><strong>Atenciosamente,</strong><br>${assinatura}</div>
         <div class="cta-wrap">
-          <a class="cta-link" href="${WHATSAPP_LINK}" target="_blank" rel="noopener noreferrer">
-            <img class="cta-img" src="${BUTTON_SRC}" alt="Indicar aluno pelo WhatsApp" />
+          <a class="cta-link" href="${whatsappLink}" target="_blank" rel="noopener noreferrer">
+            <img class="cta-img" src="${buttonConfig.src}" alt="${buttonConfig.alt}" />
           </a>
         </div>
         <div class="footer-note">Canal oficial de atendimento • Polo UniCesumar – Caucaia</div>
@@ -623,10 +665,11 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
       const assinatura = escapeHtml(
         nomeRemetenteEl.value.trim() || "Fabricio Benigno - Tutor de Polo\nUniCesumar – Caucaia"
       ).replace(/\n/g, "<br>");
-
       const body = escapeHtml(mensagemEl.value.trim())
         .replace(/\n\n/g, "</p><p>")
         .replace(/\n/g, "<br>");
+      const buttonConfig = getButtonConfig();
+      const whatsappLink = getWhatsappLink();
 
       return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -653,8 +696,8 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
                 <strong>Atenciosamente,</strong><br>${assinatura}
               </div>
               <div style="margin-top:28px;text-align:center;">
-                <a href="${WHATSAPP_LINK}" target="_blank" rel="noopener noreferrer">
-                  <img src="${BUTTON_SRC}" alt="Indicar aluno pelo WhatsApp" style="max-width:100%;width:520px;height:auto;border:0;display:inline-block;" />
+                <a href="${whatsappLink}" target="_blank" rel="noopener noreferrer">
+                  <img src="${buttonConfig.src}" alt="${buttonConfig.alt}" style="max-width:100%;width:520px;height:auto;border:0;display:inline-block;" />
                 </a>
               </div>
               <div style="margin-top:28px;font-size:13px;color:#60758d;text-align:center;">
@@ -738,7 +781,6 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
 
       let sent = 0;
       let failed = 0;
-      const failedList = [];
       const batches = chunkArray(recipients, batchSize);
 
       try {
@@ -756,17 +798,14 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
             messageHtml,
             senderName,
             batchNumber: i + 1,
-            totalBatches: batches.length
+            totalBatches: batches.length,
+            buttonMode: buttonModeEl.value
           };
 
           const data = await postBatch(endpoint, payload);
 
           sent += Number(data.sent || 0);
           failed += Number(data.failed || 0);
-
-          if (Array.isArray(data.failedList) && data.failedList.length) {
-            failedList.push(...data.failedList);
-          }
 
           updateStats(recipients.length, invalidRecipients.length, sent, failed);
           setProgress(sent + failed, recipients.length, `Lote ${i + 1}/${batches.length} concluído. Enviados: ${sent}. Falhas: ${failed}.`);
@@ -784,11 +823,7 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
           `Falhas: ${failed}.`
         ].join(" ");
 
-        if (failed > 0 || invalidRecipients.length > 0) {
-          showStatus(baseMessage, "warn");
-        } else {
-          showStatus(baseMessage, "ok");
-        }
+        showStatus(baseMessage, (failed > 0 || invalidRecipients.length > 0) ? "warn" : "ok");
 
       } catch (error) {
         showStatus(
@@ -810,8 +845,9 @@ Clique no botão verde abaixo e faça sua indicação em poucos segundos:</texta
 
     btnEnviar.addEventListener("click", handleSend);
 
-    [destinatariosEl, assuntoEl, nomeRemetenteEl, mensagemEl].forEach(el => {
+    [destinatariosEl, assuntoEl, nomeRemetenteEl, mensagemEl, buttonModeEl, whatsappMessageEl].forEach(el => {
       el.addEventListener("input", updatePreview);
+      el.addEventListener("change", updatePreview);
     });
 
     updatePreview();
